@@ -19,8 +19,14 @@
                 <span class="brand-name">Spendly</span>
             </a>
             <div class="nav-links">
+                {% if not session.user_id %}
                 <a href="{{ url_for('login') }}">Sign in</a>
                 <a href="{{ url_for('register') }}" class="nav-cta">Get started</a>
+                {% else %}
+                <form action="{{ url_for('logout') }}" method="POST" class="logout-form">
+                    <button type="submit" class="logout-link">Logout</button>
+                </form>
+                {% endif %}
             </div>
         </div>
     </nav>
