@@ -16,7 +16,7 @@ separate, later step and is out of scope here.
 
 ## Routes
 - `POST /register` — validate form input, create the user, start a
-  session, redirect to `/profile` — public
+  session, redirect to `/login` — public
 - `GET /register` — existing route, unchanged (renders the form)
 
 ## Database changes
@@ -25,19 +25,19 @@ created_at) from `database/db.py` already supports this feature as-is.
 
 ## Templates
 - **Create:** none
-- **Modify:** `templates/register.html` — no structural changes expected;
-  it already posts to `/register` and renders `{{ error }}`. Only touch it
-  if server-side validation needs an error message it doesn't already
-  support.
+- **Modify:** `templates/register.html` — adds a `confirm_password` field
+  so the user re-types their password; it already posts to `/register`
+  and renders `{{ error }}`.
 
 ## Files to change
 - `app.py`
   - Add `app.secret_key` (from an environment variable, with a
     development fallback) so Flask sessions work.
   - Change `@app.route("/register")` to accept `methods=["GET", "POST"]`.
-  - On `POST`: validate name/email/password, check for a duplicate email,
+  - On `POST`: validate name/email/password/confirm_password, check that
+    password and confirm_password match, check for a duplicate email,
     hash the password, insert the user, store `user_id` in the session,
-    redirect to `/profile`. On validation failure, re-render
+    redirect to `/login`. On validation failure, re-render
     `register.html` with `error` set and the submitted values preserved.
 - `database/db.py`
   - Add a small helper, e.g. `get_user_by_email(email)`, so the duplicate
@@ -74,5 +74,7 @@ No new dependencies.
       with an error and does not insert a duplicate row.
 - [ ] Submitting a password under 8 characters re-renders `register.html`
       with an error and does not insert a row.
+- [ ] Submitting a password and confirm password that don't match
+      re-renders `register.html` with an error and does not insert a row.
 - [ ] Restarting the app (`python app.py`) does not error and does not
       duplicate or lose existing users.
