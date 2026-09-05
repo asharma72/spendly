@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://unpkg.com/lucide@latest"></script>
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -23,6 +24,7 @@
                 <a href="{{ url_for('login') }}">Sign in</a>
                 <a href="{{ url_for('register') }}" class="nav-cta">Get started</a>
                 {% else %}
+                <span class="nav-username">Demo User</span>
                 <form action="{{ url_for('logout') }}" method="POST" class="logout-form">
                     <button type="submit" class="logout-link">Logout</button>
                 </form>

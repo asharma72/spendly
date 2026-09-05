@@ -132,6 +132,11 @@ a { color: inherit; text-decoration: none; }
 
 .logout-link:hover { color: var(--ink); }
 
+.nav-username {
+    color: var(--ink-soft);
+    font-weight: 500;
+}
+
 /* ------------------------------------------------------------------ */
 /* Main                                                                */
 /* ------------------------------------------------------------------ */
@@ -701,7 +706,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 @media (max-width: 600px) {
-    .nav-links a:not(.nav-cta), .logout-link { display: none; }
+    .nav-links a:not(.nav-cta), .logout-link, .nav-username { display: none; }
     .hero { padding: 3rem 1rem 2rem; }
     .hero-actions { flex-direction: column; width: 100%; }
     .hero-btn { text-align: center; }
