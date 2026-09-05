@@ -189,7 +189,28 @@ def build_category_breakdown(user_id):
     """Return list of dicts for profile.html `categories`:
     name, total ('₹X.XX' str), percent (int, sums to 100),
     width_class (int, multiple of 10, min 10). Empty list if no expenses."""
-    raise NotImplementedError
+    rows = get_category_totals(user_id)
+    if not rows:
+        return []
+
+    grand_total = sum(row["total"] for row in rows)
+    if grand_total <= 0:
+        return []
+
+    percents = [int((row["total"] / grand_total) * 100) for row in rows]
+    remainder = 100 - sum(percents)
+    percents[0] += remainder
+
+    categories = []
+    for row, percent in zip(rows, percents):
+        width_class = max(10, (percent // 10) * 10)
+        categories.append({
+            "name": row["category"],
+            "total": f"₹{row['total']:.2f}",
+            "percent": percent,
+            "width_class": width_class,
+        })
+    return categories
 
 
 @app.route("/profile")
