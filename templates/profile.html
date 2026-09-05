@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Profile — Spendly{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<section class="profile-section">
+    <div class="profile-container">
+
+        <div class="profile-card">
+            <div class="profile-avatar">{{ user.initials }}</div>
+            <div class="profile-info">
+                <h1 class="profile-name">{{ user.name }}</h1>
+                <p class="profile-email">{{ user.email }}</p>
+                <p class="profile-member-since"><i data-lucide="calendar"></i> Member since {{ user.member_since }}</p>
+            </div>
+        </div>
+
+        <div class="profile-stats">
+            <div class="profile-stat">
+                <div class="profile-stat-head">
+                    <i data-lucide="wallet"></i>
+                    <span class="profile-stat-label">Total spent</span>
+                </div>
+                <span class="profile-stat-value">{{ stats.total_spent }}</span>
+            </div>
+            <div class="profile-stat">
+                <div class="profile-stat-head">
+                    <i data-lucide="credit-card"></i>
+                    <span class="profile-stat-label">Transactions</span>
+                </div>
+                <span class="profile-stat-value">{{ stats.transaction_count }}</span>
+            </div>
+            <div class="profile-stat">
+                <div class="profile-stat-head">
+                    <i data-lucide="tag"></i>
+                    <span class="profile-stat-label">Top category</span>
+                </div>
+                <span class="profile-stat-value">{{ stats.top_category }}</span>
+            </div>
+        </div>
+
+        <div class="profile-panel">
+            <h2 class="profile-panel-title"><i data-lucide="receipt"></i> Recent transactions</h2>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th class="table-amount-col">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in transactions %}
+                    <tr>
+                        <td>{{ tx.date }}</td>
+                        <td>{{ tx.description }}</td>
+                        <td><span class="badge badge-{{ tx.category|lower }}">{{ tx.category }}</span></td>
+                        <td class="table-amount-col">{{ tx.amount }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="profile-panel">
+            <h2 class="profile-panel-title"><i data-lucide="pie-chart"></i> Category breakdown</h2>
+            <div class="cat-breakdown">
+                {% for cat in categories %}
+                <div class="cat-row">
+                    <span class="badge badge-{{ cat.name|lower }} cat-label">{{ cat.name }}</span>
+                    <div class="cat-bar-track">
+                        <div class="cat-bar cat-bar-{{ cat.name|lower }} bar-w-{{ cat.width_class }}"></div>
+                    </div>
+                    <span class="cat-total">{{ cat.total }}</span>
+                    <span class="cat-percent">{{ cat.percent }}%</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
