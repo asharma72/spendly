@@ -1,10 +1,20 @@
 import os
 import sqlite3
+from datetime import datetime
 
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from database.db import get_db, init_db, seed_db, get_user_by_email
+from database.db import (
+    get_db,
+    init_db,
+    seed_db,
+    get_user_by_email,
+    get_user_by_id,
+    get_expense_stats,
+    get_recent_expenses,
+    get_category_totals,
+)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
@@ -125,6 +135,32 @@ def terms():
 @app.route("/privacy")
 def privacy():
     return render_template("privacy.html")
+
+
+# ------------------------------------------------------------------ #
+# Profile page helpers                                                #
+# ------------------------------------------------------------------ #
+
+def build_transaction_history(user_id):
+    """Return list of dicts for profile.html `transactions`:
+    date, description, category, amount ('₹X.XX' str). Newest-first.
+    Empty list if the user has no expenses."""
+    raise NotImplementedError
+
+
+def build_profile_summary(user_id):
+    """Return (user, stats) for profile.html.
+    user: name, email, initials, member_since ('Month YYYY').
+    stats: total_spent ('₹X.XX' str), transaction_count (int),
+    top_category (str or '—')."""
+    raise NotImplementedError
+
+
+def build_category_breakdown(user_id):
+    """Return list of dicts for profile.html `categories`:
+    name, total ('₹X.XX' str), percent (int, sums to 100),
+    width_class (int, multiple of 10, min 10). Empty list if no expenses."""
+    raise NotImplementedError
 
 
 @app.route("/profile")
