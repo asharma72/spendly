@@ -162,7 +162,27 @@ def build_profile_summary(user_id):
     user: name, email, initials, member_since ('Month YYYY').
     stats: total_spent ('₹X.XX' str), transaction_count (int),
     top_category (str or '—')."""
-    raise NotImplementedError
+    user_row = get_user_by_id(user_id)
+    stats_data = get_expense_stats(user_id)
+
+    initials = "".join(part[0].upper() for part in user_row["name"].split()[:2])
+    created_at = datetime.strptime(user_row["created_at"][:10], "%Y-%m-%d")
+    member_since = created_at.strftime("%B %Y")
+
+    user = {
+        "name": user_row["name"],
+        "email": user_row["email"],
+        "initials": initials,
+        "member_since": member_since,
+    }
+
+    stats = {
+        "total_spent": f"₹{stats_data['total_spent']:.2f}",
+        "transaction_count": stats_data["transaction_count"],
+        "top_category": stats_data["top_category"] or "—",
+    }
+
+    return user, stats
 
 
 def build_category_breakdown(user_id):
