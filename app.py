@@ -145,7 +145,16 @@ def build_transaction_history(user_id):
     """Return list of dicts for profile.html `transactions`:
     date, description, category, amount ('₹X.XX' str). Newest-first.
     Empty list if the user has no expenses."""
-    raise NotImplementedError
+    rows = get_recent_expenses(user_id, limit=10)
+    return [
+        {
+            "date": row["date"],
+            "description": row["description"],
+            "category": row["category"],
+            "amount": f"₹{row['amount']:.2f}",
+        }
+        for row in rows
+    ]
 
 
 def build_profile_summary(user_id):
