@@ -1,10 +1,20 @@
 import os
 import sqlite3
+from datetime import datetime
 
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from database.db import get_db, init_db, seed_db, get_user_by_email
+from database.db import (
+    get_db,
+    init_db,
+    seed_db,
+    get_user_by_email,
+    get_user_by_id,
+    get_expense_stats,
+    get_recent_expenses,
+    get_category_totals,
+)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
@@ -127,44 +137,92 @@ def privacy():
     return render_template("privacy.html")
 
 
+# ------------------------------------------------------------------ #
+# Profile page helpers                                                #
+# ------------------------------------------------------------------ #
+
+def build_transaction_history(user_id):
+    """Return list of dicts for profile.html `transactions`:
+    date, description, category, amount ('₹X.XX' str). Newest-first.
+    Empty list if the user has no expenses."""
+    rows = get_recent_expenses(user_id, limit=10)
+    return [
+        {
+            "date": row["date"],
+            "description": row["description"],
+            "category": row["category"],
+            "amount": f"₹{row['amount']:.2f}",
+        }
+        for row in rows
+    ]
+
+
+def build_profile_summary(user_id):
+    """Return (user, stats) for profile.html.
+    user: name, email, initials, member_since ('Month YYYY').
+    stats: total_spent ('₹X.XX' str), transaction_count (int),
+    top_category (str or '—')."""
+    user_row = get_user_by_id(user_id)
+    stats_data = get_expense_stats(user_id)
+
+    initials = "".join(part[0].upper() for part in user_row["name"].split()[:2])
+    created_at = datetime.strptime(user_row["created_at"][:10], "%Y-%m-%d")
+    member_since = created_at.strftime("%B %Y")
+
+    user = {
+        "name": user_row["name"],
+        "email": user_row["email"],
+        "initials": initials,
+        "member_since": member_since,
+    }
+
+    stats = {
+        "total_spent": f"₹{stats_data['total_spent']:.2f}",
+        "transaction_count": stats_data["transaction_count"],
+        "top_category": stats_data["top_category"] or "—",
+    }
+
+    return user, stats
+
+
+def build_category_breakdown(user_id):
+    """Return list of dicts for profile.html `categories`:
+    name, total ('₹X.XX' str), percent (int, sums to 100),
+    width_class (int, multiple of 10, min 10). Empty list if no expenses."""
+    rows = get_category_totals(user_id)
+    if not rows:
+        return []
+
+    grand_total = sum(row["total"] for row in rows)
+    if grand_total <= 0:
+        return []
+
+    percents = [int((row["total"] / grand_total) * 100) for row in rows]
+    remainder = 100 - sum(percents)
+    percents[0] += remainder
+
+    categories = []
+    for row, percent in zip(rows, percents):
+        width_class = max(10, (percent // 10) * 10)
+        categories.append({
+            "name": row["category"],
+            "total": f"₹{row['total']:.2f}",
+            "percent": percent,
+            "width_class": width_class,
+        })
+    return categories
+
+
 @app.route("/profile")
 def profile():
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
-    user = {
-        "name": "Demo User",
-        "email": "demo@spendly.com",
-        "initials": "DU",
-        "member_since": "August 2026",
-    }
+    user_id = session["user_id"]
 
-    stats = {
-        "total_spent": "₹305.53",
-        "transaction_count": 8,
-        "top_category": "Bills",
-    }
-
-    transactions = [
-        {"date": "2026-08-21", "description": "Dinner with friends", "category": "Food", "amount": "₹34.75"},
-        {"date": "2026-08-18", "description": "Birthday gift for a friend", "category": "Other", "amount": "₹20.00"},
-        {"date": "2026-08-15", "description": "New running shoes", "category": "Shopping", "amount": "₹62.30"},
-        {"date": "2026-08-12", "description": "Movie ticket", "category": "Entertainment", "amount": "₹15.99"},
-        {"date": "2026-08-09", "description": "Pharmacy — allergy medication", "category": "Health", "amount": "₹25.00"},
-        {"date": "2026-08-06", "description": "Electricity bill", "category": "Bills", "amount": "₹89.99"},
-        {"date": "2026-08-03", "description": "Monthly metro pass", "category": "Transport", "amount": "₹45.00"},
-        {"date": "2026-08-01", "description": "Grocery run at Trader Joe's", "category": "Food", "amount": "₹12.50"},
-    ]
-
-    categories = [
-        {"name": "Bills", "total": "₹89.99", "percent": 29, "width_class": 30},
-        {"name": "Shopping", "total": "₹62.30", "percent": 20, "width_class": 20},
-        {"name": "Food", "total": "₹47.25", "percent": 15, "width_class": 20},
-        {"name": "Transport", "total": "₹45.00", "percent": 15, "width_class": 20},
-        {"name": "Health", "total": "₹25.00", "percent": 8, "width_class": 10},
-        {"name": "Other", "total": "₹20.00", "percent": 7, "width_class": 10},
-        {"name": "Entertainment", "total": "₹15.99", "percent": 5, "width_class": 10},
-    ]
+    user, stats = build_profile_summary(user_id)
+    transactions = build_transaction_history(user_id)
+    categories = build_category_breakdown(user_id)
 
     return render_template(
         "profile.html",
