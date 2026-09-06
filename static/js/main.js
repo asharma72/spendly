@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     initDateFilterPresets();
     initExpenseAddedAlert();
+    initExpenseDeletedAlert();
+    initDeleteConfirm();
 });
 
 function initExpenseAddedAlert() {
@@ -18,6 +20,28 @@ function initExpenseAddedAlert() {
     const query = params.toString();
     const newUrl = window.location.pathname + (query ? `?${query}` : "");
     window.history.replaceState({}, "", newUrl);
+}
+
+function initExpenseDeletedAlert() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("deleted") !== "1") return;
+
+    alert("Expense deleted successfully!");
+
+    params.delete("deleted");
+    const query = params.toString();
+    const newUrl = window.location.pathname + (query ? `?${query}` : "");
+    window.history.replaceState({}, "", newUrl);
+}
+
+function initDeleteConfirm() {
+    document.querySelectorAll("[data-confirm-delete]").forEach((link) => {
+        link.addEventListener("click", (event) => {
+            if (!confirm("Delete this expense?")) {
+                event.preventDefault();
+            }
+        });
+    });
 }
 
 function initDateFilterPresets() {
