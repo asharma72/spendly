@@ -93,3 +93,11 @@ git commit -m "Dynamic Routing"
   git checkout master
   git pull origin master
   git branch -D feature/profile-backend-routes
+
+  MCP
+  claude mcp add --transport stdio sqlite -- npx -y mcp-server-sqlite-npx "D:\expense-tracker\spendly.db"
+  https://www.figma.com/make/bwpDyazGwcTBRcDzeiB28E/Coming-Soon-Page-Wireframe?p=f&t=lXBNuJjQQfS1B4Pu-0
+
+  git
+  claude mcp add --transport http github https://api.githubcopilot.com/mcp -H "Authorization: Bearer $PAT"
+  $PAT = your github PAT

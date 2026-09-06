@@ -24,6 +24,7 @@
                 <a href="{{ url_for('login') }}">Sign in</a>
                 <a href="{{ url_for('register') }}" class="nav-cta">Get started</a>
                 {% else %}
+                <a href="{{ url_for('analytics') }}" class="{% if request.endpoint == 'analytics' %}nav-link-active{% endif %}">Analytics</a>
                 <span class="nav-username">Demo User</span>
                 <form action="{{ url_for('logout') }}" method="POST" class="logout-form">
                     <button type="submit" class="logout-link">Logout</button>
