@@ -81,7 +81,7 @@ def get_recent_expenses(user_id, limit=10, start_date=None, end_date=None):
     conn = get_db()
     date_clause, date_params = _build_date_filter(start_date, end_date)
     rows = conn.execute(
-        "SELECT date, description, category, amount "
+        "SELECT id, date, description, category, amount "
         "FROM expenses WHERE user_id = ?" + date_clause + " "
         "ORDER BY date DESC, id DESC "
         "LIMIT ?",
@@ -116,6 +116,27 @@ def create_expense(user_id, amount, category, expense_date, description):
     expense_id = cursor.lastrowid
     conn.close()
     return expense_id
+
+
+def get_expense_by_id(expense_id, user_id):
+    conn = get_db()
+    row = conn.execute(
+        "SELECT * FROM expenses WHERE id = ? AND user_id = ?",
+        (expense_id, user_id),
+    ).fetchone()
+    conn.close()
+    return row
+
+
+def update_expense(expense_id, user_id, amount, category, expense_date, description):
+    conn = get_db()
+    conn.execute(
+        "UPDATE expenses SET amount = ?, category = ?, date = ?, description = ? "
+        "WHERE id = ? AND user_id = ?",
+        (amount, category, expense_date, description, expense_id, user_id),
+    )
+    conn.commit()
+    conn.close()
 
 
 def init_db():

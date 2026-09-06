@@ -292,6 +292,22 @@
     font-variant-numeric: tabular-nums;
 }
 
+.table-actions-col {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.action-link {
+    color: var(--accent);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.action-link:hover {
+    text-decoration: underline;
+}
+
 /* ------------------------------------------------------------------ */
 /* Category badges                                                     */
 /* ------------------------------------------------------------------ */

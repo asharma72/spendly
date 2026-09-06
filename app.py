@@ -2,7 +2,7 @@ import os
 import sqlite3
 from datetime import date, datetime
 
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from database.db import (
@@ -15,6 +15,8 @@ from database.db import (
     get_recent_expenses,
     get_category_totals,
     create_expense,
+    get_expense_by_id,
+    update_expense,
 )
 
 app = Flask(__name__)
@@ -175,11 +177,12 @@ def _parse_date_range(args):
 
 def build_transaction_history(user_id, start_date=None, end_date=None):
     """Return list of dicts for profile.html `transactions`:
-    date, description, category, amount ('₹X.XX' str). Newest-first.
+    id, date, description, category, amount ('₹X.XX' str). Newest-first.
     Empty list if the user has no expenses."""
     rows = get_recent_expenses(user_id, limit=10, start_date=start_date, end_date=end_date)
     return [
         {
+            "id": row["id"],
             "date": row["date"],
             "description": row["description"],
             "category": row["category"],
@@ -280,6 +283,59 @@ def analytics():
 # Placeholder routes — students will implement these                  #
 # ------------------------------------------------------------------ #
 
+def _validate_expense_form(form):
+    """Parse and validate amount/category/date/description from a
+    submitted expense form (add or edit). Returns (data, error).
+
+    On success, error is None and data holds the validated amount
+    (float), category, date (validated 'YYYY-MM-DD' string), and
+    description (str or None) - ready to pass straight to
+    create_expense()/update_expense(). On failure, error is a
+    user-facing message and data holds the raw submitted strings for
+    repopulating the form.
+
+    An invalid/missing date is corrected silently rather than
+    blocking the submission - unlike amount/category, a bad date
+    doesn't corrupt the profile page's aggregates, so we don't bother
+    the user with an error for it."""
+    amount_raw = form.get("amount", "").strip()
+    category = form.get("category", "").strip()
+    date_raw = form.get("date", "").strip()
+    description = form.get("description", "").strip()
+
+    try:
+        amount = float(amount_raw)
+    except ValueError:
+        amount = None
+
+    submitted = {
+        "amount": amount_raw,
+        "category": category,
+        "date": date_raw,
+        "description": description,
+    }
+
+    if amount is None or amount <= 0:
+        return submitted, "Please enter a valid amount greater than 0."
+
+    if category not in EXPENSE_CATEGORIES:
+        return submitted, "Please choose a valid category."
+
+    try:
+        datetime.strptime(date_raw, "%Y-%m-%d")
+        expense_date = date_raw
+    except ValueError:
+        expense_date = date.today().isoformat()
+
+    data = {
+        "amount": amount,
+        "category": category,
+        "date": expense_date,
+        "description": description or None,
+    }
+    return data, None
+
+
 def _render_add_expense_form(**extra):
     return render_template(
         "expenses_add.html",
@@ -298,51 +354,56 @@ def add_expense():
         return _render_add_expense_form()
 
     user_id = session["user_id"]
-    amount_raw = request.form.get("amount", "").strip()
-    category = request.form.get("category", "").strip()
-    date_raw = request.form.get("date", "").strip()
-    description = request.form.get("description", "").strip()
+    data, error = _validate_expense_form(request.form)
+    if error:
+        return _render_add_expense_form(error=error, **data)
 
-    try:
-        amount = float(amount_raw)
-    except ValueError:
-        amount = None
-
-    if amount is None or amount <= 0:
-        return _render_add_expense_form(
-            error="Please enter a valid amount greater than 0.",
-            amount=amount_raw,
-            category=category,
-            date=date_raw,
-            description=description,
-        )
-
-    if category not in EXPENSE_CATEGORIES:
-        return _render_add_expense_form(
-            error="Please choose a valid category.",
-            amount=amount_raw,
-            category=category,
-            date=date_raw,
-            description=description,
-        )
-
-    # An invalid/missing date is corrected silently rather than
-    # blocking the submission - unlike amount/category, a bad date
-    # doesn't corrupt the profile page's aggregates, so we don't
-    # bother the user with an error for it.
-    try:
-        datetime.strptime(date_raw, "%Y-%m-%d")
-        expense_date = date_raw
-    except ValueError:
-        expense_date = date.today().isoformat()
-
-    create_expense(user_id, amount, category, expense_date, description or None)
+    create_expense(
+        user_id, data["amount"], data["category"], data["date"], data["description"]
+    )
     return redirect(url_for("profile", added="1"))
 
 
-@app.route("/expenses/<int:id>/edit")
+def _render_edit_expense_form(expense, **extra):
+    return render_template(
+        "expenses_edit.html",
+        expense=expense,
+        categories=EXPENSE_CATEGORIES,
+        today=date.today().isoformat(),
+        **extra,
+    )
+
+
+@app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])
 def edit_expense(id):
-    return "Edit expense — coming in Step 8"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    existing = get_expense_by_id(id, user_id)
+    if existing is None:
+        abort(404)
+
+    if request.method == "GET":
+        expense = {
+            "id": existing["id"],
+            "amount": f"{existing['amount']:.2f}",
+            "category": existing["category"],
+            "date": existing["date"],
+            "description": existing["description"],
+        }
+        return _render_edit_expense_form(expense)
+
+    data, error = _validate_expense_form(request.form)
+    if error:
+        # Submitted (not original) values repopulate the form on
+        # failure, matching add_expense's pattern.
+        return _render_edit_expense_form({"id": id, **data}, error=error)
+
+    update_expense(
+        id, user_id, data["amount"], data["category"], data["date"], data["description"]
+    )
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/<int:id>/delete")
