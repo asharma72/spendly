@@ -44,43 +44,65 @@
             </div>
         </div>
 
-        <div class="profile-panel">
-            <h2 class="profile-panel-title"><i data-lucide="receipt"></i> Recent transactions</h2>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Description</th>
-                        <th>Category</th>
-                        <th class="table-amount-col">Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for tx in transactions %}
-                    <tr>
-                        <td>{{ tx.date }}</td>
-                        <td>{{ tx.description }}</td>
-                        <td><span class="badge badge-{{ tx.category|lower }}">{{ tx.category }}</span></td>
-                        <td class="table-amount-col">{{ tx.amount }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="profile-panel profile-filter-panel">
+            <form class="filter-form" method="GET" action="{{ url_for('profile') }}" id="date-filter-form">
+                <div class="filter-presets" role="group" aria-label="Date range presets">
+                    <button type="button" class="filter-pill" data-preset="all">All Time</button>
+                    <button type="button" class="filter-pill" data-preset="month">This Month</button>
+                    <button type="button" class="filter-pill" data-preset="3months">Last 3 Months</button>
+                    <button type="button" class="filter-pill" data-preset="6months">Last 6 Months</button>
+                </div>
+                <div class="filter-dates">
+                    <label for="start_date" class="filter-label-sr">From</label>
+                    <input type="date" id="start_date" name="start_date" class="form-input" value="{{ start_date }}">
+                    <span class="filter-to">to</span>
+                    <label for="end_date" class="filter-label-sr">To</label>
+                    <input type="date" id="end_date" name="end_date" class="form-input" value="{{ end_date }}">
+                </div>
+                <button type="submit" class="filter-apply">Apply</button>
+            </form>
         </div>
 
-        <div class="profile-panel">
-            <h2 class="profile-panel-title"><i data-lucide="pie-chart"></i> Category breakdown</h2>
-            <div class="cat-breakdown">
-                {% for cat in categories %}
-                <div class="cat-row">
-                    <span class="badge badge-{{ cat.name|lower }} cat-label">{{ cat.name }}</span>
-                    <div class="cat-bar-track">
-                        <div class="cat-bar cat-bar-{{ cat.name|lower }} bar-w-{{ cat.width_class }}"></div>
+        <div class="profile-panels-row">
+            <div class="profile-panel">
+                <h2 class="profile-panel-title"><i data-lucide="receipt"></i> Recent transactions</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th class="table-amount-col">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tx in transactions %}
+                        <tr>
+                            <td>{{ tx.date }}</td>
+                            <td>{{ tx.description }}</td>
+                            <td><span class="badge badge-{{ tx.category|lower }}">{{ tx.category }}</span></td>
+                            <td class="table-amount-col">{{ tx.amount }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="profile-panel">
+                <h2 class="profile-panel-title">By Category</h2>
+                <div class="cat-breakdown">
+                    {% for cat in categories %}
+                    <div class="cat-row">
+                        <div class="cat-row-head">
+                            <span class="cat-label">{{ cat.name }}</span>
+                            <span class="cat-total">{{ cat.total }}</span>
+                        </div>
+                        <div class="cat-bar-track">
+                            <div class="cat-bar cat-bar-{{ cat.name|lower }} bar-w-{{ cat.width_class }}"></div>
+                        </div>
                     </div>
-                    <span class="cat-total">{{ cat.total }}</span>
-                    <span class="cat-percent">{{ cat.percent }}%</span>
+                    {% endfor %}
                 </div>
-                {% endfor %}
             </div>
         </div>
 

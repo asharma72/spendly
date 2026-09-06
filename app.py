@@ -141,11 +141,37 @@ def privacy():
 # Profile page helpers                                                #
 # ------------------------------------------------------------------ #
 
-def build_transaction_history(user_id):
+def _parse_date_range(args):
+    """Loosely parse start_date/end_date query args (YYYY-MM-DD).
+
+    Returns (start_date, end_date), each either a valid YYYY-MM-DD
+    string or None, validated independently. If both parse but
+    start_date > end_date, both are reset to None (whole range treated
+    as unfiltered)."""
+
+    def _valid(value):
+        if not value:
+            return None
+        try:
+            datetime.strptime(value, "%Y-%m-%d")
+            return value
+        except ValueError:
+            return None
+
+    start_date = _valid(args.get("start_date"))
+    end_date = _valid(args.get("end_date"))
+
+    if start_date and end_date and start_date > end_date:
+        return None, None
+
+    return start_date, end_date
+
+
+def build_transaction_history(user_id, start_date=None, end_date=None):
     """Return list of dicts for profile.html `transactions`:
     date, description, category, amount ('₹X.XX' str). Newest-first.
     Empty list if the user has no expenses."""
-    rows = get_recent_expenses(user_id, limit=10)
+    rows = get_recent_expenses(user_id, limit=10, start_date=start_date, end_date=end_date)
     return [
         {
             "date": row["date"],
@@ -157,13 +183,13 @@ def build_transaction_history(user_id):
     ]
 
 
-def build_profile_summary(user_id):
+def build_profile_summary(user_id, start_date=None, end_date=None):
     """Return (user, stats) for profile.html.
     user: name, email, initials, member_since ('Month YYYY').
     stats: total_spent ('₹X.XX' str), transaction_count (int),
     top_category (str or '—')."""
     user_row = get_user_by_id(user_id)
-    stats_data = get_expense_stats(user_id)
+    stats_data = get_expense_stats(user_id, start_date=start_date, end_date=end_date)
 
     initials = "".join(part[0].upper() for part in user_row["name"].split()[:2])
     created_at = datetime.strptime(user_row["created_at"][:10], "%Y-%m-%d")
@@ -185,11 +211,11 @@ def build_profile_summary(user_id):
     return user, stats
 
 
-def build_category_breakdown(user_id):
+def build_category_breakdown(user_id, start_date=None, end_date=None):
     """Return list of dicts for profile.html `categories`:
     name, total ('₹X.XX' str), percent (int, sums to 100),
     width_class (int, multiple of 10, min 10). Empty list if no expenses."""
-    rows = get_category_totals(user_id)
+    rows = get_category_totals(user_id, start_date=start_date, end_date=end_date)
     if not rows:
         return []
 
@@ -219,10 +245,11 @@ def profile():
         return redirect(url_for("login"))
 
     user_id = session["user_id"]
+    start_date, end_date = _parse_date_range(request.args)
 
-    user, stats = build_profile_summary(user_id)
-    transactions = build_transaction_history(user_id)
-    categories = build_category_breakdown(user_id)
+    user, stats = build_profile_summary(user_id, start_date, end_date)
+    transactions = build_transaction_history(user_id, start_date, end_date)
+    categories = build_category_breakdown(user_id, start_date, end_date)
 
     return render_template(
         "profile.html",
@@ -230,6 +257,8 @@ def profile():
         stats=stats,
         transactions=transactions,
         categories=categories,
+        start_date=start_date or "",
+        end_date=end_date or "",
     )
 
 
