@@ -127,6 +127,99 @@
 }
 
 /* ------------------------------------------------------------------ */
+/* Date filter form                                                    */
+/* ------------------------------------------------------------------ */
+
+.profile-filter-panel {
+    padding: 1rem 1.5rem;
+}
+
+.filter-form {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.filter-label-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+}
+
+.filter-presets {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.55rem 1.1rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--paper);
+    color: var(--ink-soft);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.filter-pill:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.filter-pill-active,
+.filter-pill-active:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--paper);
+}
+
+.filter-dates {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.filter-dates .form-input {
+    width: auto;
+}
+
+.filter-to {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+}
+
+.filter-apply {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 1.5rem;
+    border-radius: 999px;
+    border: none;
+    background: var(--accent);
+    color: var(--paper);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: filter 0.2s;
+    margin-left: auto;
+}
+
+.filter-apply:hover {
+    filter: brightness(0.92);
+}
+
+/* ------------------------------------------------------------------ */
 /* Panels row (transactions left, category breakdown right)           */
 /* ------------------------------------------------------------------ */
 
@@ -300,4 +393,7 @@
 @media (max-width: 600px) {
     .profile-panel { padding: 1.25rem; }
     .table th:nth-child(2), .table td:nth-child(2) { display: none; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .filter-dates { flex-wrap: wrap; }
+    .filter-apply { margin-left: 0; }
 }

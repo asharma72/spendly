@@ -36,21 +36,38 @@ def get_user_by_id(user_id):
     return row
 
 
-def get_expense_stats(user_id):
+def _build_date_filter(start_date=None, end_date=None):
+    """Build an optional inclusive date-range SQL fragment and its bound
+    params. clause is '' or one/both of ' AND date >= ?' / ' AND date
+    <= ?' (a fixed literal fragment, never built from user input);
+    params is the list of values to append to the query's params."""
+    clause = ""
+    params = []
+    if start_date:
+        clause += " AND date >= ?"
+        params.append(start_date)
+    if end_date:
+        clause += " AND date <= ?"
+        params.append(end_date)
+    return clause, params
+
+
+def get_expense_stats(user_id, start_date=None, end_date=None):
     conn = get_db()
+    date_clause, date_params = _build_date_filter(start_date, end_date)
     totals_row = conn.execute(
         "SELECT COALESCE(SUM(amount), 0) AS total_spent, "
         "COUNT(*) AS transaction_count "
-        "FROM expenses WHERE user_id = ?",
-        (user_id,),
+        "FROM expenses WHERE user_id = ?" + date_clause,
+        (user_id, *date_params),
     ).fetchone()
     top_row = conn.execute(
         "SELECT category, SUM(amount) AS category_total "
-        "FROM expenses WHERE user_id = ? "
+        "FROM expenses WHERE user_id = ?" + date_clause + " "
         "GROUP BY category "
         "ORDER BY category_total DESC "
         "LIMIT 1",
-        (user_id,),
+        (user_id, *date_params),
     ).fetchone()
     conn.close()
     return {
@@ -60,27 +77,29 @@ def get_expense_stats(user_id):
     }
 
 
-def get_recent_expenses(user_id, limit=10):
+def get_recent_expenses(user_id, limit=10, start_date=None, end_date=None):
     conn = get_db()
+    date_clause, date_params = _build_date_filter(start_date, end_date)
     rows = conn.execute(
         "SELECT date, description, category, amount "
-        "FROM expenses WHERE user_id = ? "
+        "FROM expenses WHERE user_id = ?" + date_clause + " "
         "ORDER BY date DESC, id DESC "
         "LIMIT ?",
-        (user_id, limit),
+        (user_id, *date_params, limit),
     ).fetchall()
     conn.close()
     return [dict(row) for row in rows]
 
 
-def get_category_totals(user_id):
+def get_category_totals(user_id, start_date=None, end_date=None):
     conn = get_db()
+    date_clause, date_params = _build_date_filter(start_date, end_date)
     rows = conn.execute(
         "SELECT category, SUM(amount) AS total "
-        "FROM expenses WHERE user_id = ? "
+        "FROM expenses WHERE user_id = ?" + date_clause + " "
         "GROUP BY category "
         "ORDER BY total DESC",
-        (user_id,),
+        (user_id, *date_params),
     ).fetchall()
     conn.close()
     return [dict(row) for row in rows]
