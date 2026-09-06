@@ -8,14 +8,14 @@ allowed-tools: Read, Bash, mcp__github__create_pull_request, mcp__github__merge_
 git branch --show-current
 ```
 Store this as CURRENT_BRANCH.
-Guard: if CURRENT_BRANCH is master (or main), stop immediately and report:Already on master — nothing to ship. Create a feature branch first.
+Guard: if CURRENT_BRANCH is master (or master), stop immediately and report:Already on master — nothing to ship. Create a feature branch first.
 
 ## Step 2 — Generate commit message
 Run:
 ```bash
 git diff --staged
 git diff
-git log main..HEAD --oneline
+git log master..HEAD --oneline
 ```
 Read .claude/specs/ to find the spec for the current feature.
 
@@ -49,7 +49,7 @@ Report: "✓ Pushed — CURRENT_BRANCH"
 
 ## Step 5 — Create PR via GitHub MCP
 Use the GitHub MCP server to create a pull request
-from CURRENT_BRANCH into main.
+from CURRENT_BRANCH into master.
 
 Title: plain English feature name, no conventional commit prefix
 Example: "Add delete expense functionality"
@@ -78,7 +78,7 @@ Report: "✓ PR created — <PR URL>"
 Use the GitHub MCP server to merge the pull request
 just created. Use squash merge.
 
-Report: "✓ PR merged to main"
+Report: "✓ PR merged to master"
 
 ## Step 7 — Delete remote branch via GitHub MCP
 Use the GitHub MCP server to delete CURRENT_BRANCH
@@ -86,12 +86,12 @@ from GitHub after the merge.
 
 Report: "✓ Remote branch deleted"
 
-## Step 8 — Switch to main and pull
+## Step 8 — Switch to master and pull
 ```bash
-git checkout main
-git pull origin main
+git checkout master
+git pull origin master
 ```
-Report: "✓ Switched to main — up to date"
+Report: "✓ Switched to master — up to date"
 
 ## Step 9 — Delete local feature branch
 ```bash
@@ -107,7 +107,7 @@ Print:
 ✓ Pushed — <branch>
 ✓ PR created and merged
 ✓ Remote branch deleted
-✓ Switched to main
+✓ Switched to master
 ✓ Local branch deleted
 Next: run /create-spec for the next feature
 ╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
