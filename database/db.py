@@ -105,6 +105,19 @@ def get_category_totals(user_id, start_date=None, end_date=None):
     return [dict(row) for row in rows]
 
 
+def create_expense(user_id, amount, category, expense_date, description):
+    conn = get_db()
+    cursor = conn.execute(
+        "INSERT INTO expenses (user_id, amount, category, date, description) "
+        "VALUES (?, ?, ?, ?, ?)",
+        (user_id, amount, category, expense_date, description),
+    )
+    conn.commit()
+    expense_id = cursor.lastrowid
+    conn.close()
+    return expense_id
+
+
 def init_db():
     conn = get_db()
     conn.execute("""
