@@ -65,3 +65,31 @@ using any JS framework in this project
 Do not modify any other part of the page.
 
 git commit -m "landing: add youtube modal on see how it works click"
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------
+prompts
+
+Plan Mode:
+❯ Read file .claude/specs/05-backend-routes-for-profile-page.md and come up with an implementation plan for adding the routes. While implementing the plan, split the work across 3 parallel subagents:
+
+Subagent 1: Implement the transaction history routes
+Subagent 2: Implement the summary stat routes
+Subagent 3: Implement the category breakdown routes
+
+Each subagent should only be assigned its section in app.py.
+
+git add . 
+git commit -m "Dynamic Routing"
+ git push origin feature/profile-backend-routes
+  git checkout master
+  git pull origin master
+  git branch -D feature/profile-backend-routes

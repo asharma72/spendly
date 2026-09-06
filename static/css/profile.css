@@ -127,6 +127,17 @@
 }
 
 /* ------------------------------------------------------------------ */
+/* Panels row (transactions left, category breakdown right)           */
+/* ------------------------------------------------------------------ */
+
+.profile-panels-row {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+/* ------------------------------------------------------------------ */
 /* Panels (table + breakdown share this shell)                         */
 /* ------------------------------------------------------------------ */
 
@@ -215,17 +226,27 @@
 .cat-breakdown {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.1rem;
 }
 
 .cat-row {
-    display: grid;
-    grid-template-columns: 130px 1fr 80px 48px;
-    align-items: center;
-    gap: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
 }
 
-.cat-label { justify-self: start; }
+.cat-row-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.cat-label {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    color: var(--ink);
+}
 
 .cat-bar-track {
     height: 10px;
@@ -266,13 +287,6 @@
     font-variant-numeric: tabular-nums;
 }
 
-.cat-percent {
-    font-size: 0.75rem;
-    color: var(--ink-muted);
-    text-align: right;
-    font-variant-numeric: tabular-nums;
-}
-
 /* ------------------------------------------------------------------ */
 /* Responsive                                                          */
 /* ------------------------------------------------------------------ */
@@ -280,16 +294,10 @@
 @media (max-width: 900px) {
     .profile-stats { grid-template-columns: 1fr; }
     .profile-card { flex-direction: column; text-align: center; }
-    .cat-row { grid-template-columns: 100px 1fr 70px 40px; }
+    .profile-panels-row { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 600px) {
     .profile-panel { padding: 1.25rem; }
     .table th:nth-child(2), .table td:nth-child(2) { display: none; }
-    .cat-row {
-        grid-template-columns: 1fr;
-        gap: 0.4rem;
-        text-align: left;
-    }
-    .cat-total, .cat-percent { text-align: left; }
 }
