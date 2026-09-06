@@ -5,7 +5,20 @@ document.addEventListener("DOMContentLoaded", () => {
         lucide.createIcons();
     }
     initDateFilterPresets();
+    initExpenseAddedAlert();
 });
+
+function initExpenseAddedAlert() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("added") !== "1") return;
+
+    alert("Expense added successfully!");
+
+    params.delete("added");
+    const query = params.toString();
+    const newUrl = window.location.pathname + (query ? `?${query}` : "");
+    window.history.replaceState({}, "", newUrl);
+}
 
 function initDateFilterPresets() {
     const form = document.getElementById("date-filter-form");

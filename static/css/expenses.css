@@ -1,0 +1,16 @@
+/* ------------------------------------------------------------------ */
+/* Add/Edit Expense — shared layout (reused as-is by Step 8's edit form) */
+/* ------------------------------------------------------------------ */
+
+.expenses-add-section {
+    min-height: calc(100vh - 60px - 100px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+}
+
+.expenses-add-container {
+    width: 100%;
+    max-width: var(--auth-width);
+}
